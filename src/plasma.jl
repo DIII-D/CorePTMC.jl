@@ -30,6 +30,34 @@ PlasmaBackground(Np::Int64, main_ion::Element) = PlasmaBackground(
     AnomalousDiffusion(Np)
 )
 
+PlasmaBackground(Np::Int64) = PlasmaBackground(
+    missing,
+    ElectronDensity(Np),        # constructors defined in 'LPTMC.jl'
+    MainIonDensity(Np),
+    ElectronTemperature(Np),
+    MainIonTemperature(Np),
+    MainIonVelocity(Np),
+    ElectricField(Np),
+    MagneticField(Np),
+    ElectricPotential(Np),
+    AnomalousDiffusion(Np)
+)
+
+PlasmaBackground(Nc::Int64, Nv::Int64) = PlasmaBackground(
+    missing,
+    ElectronDensity(Nc, Nv),        # constructors defined in 'LPTMC.jl'
+    MainIonDensity(Nc, Nv),
+    ElectronTemperature(Nc, Nv),
+    MainIonTemperature(Nc, Nv),
+    MainIonVelocity(Nc, Nv),
+    ElectricField(Nc, Nv),
+    MagneticField(Nc, Nv),
+    ElectricPotential(Nc, Nv),
+    AnomalousDiffusion(Nc, Nv)
+)
+
+
+
 ## -------- PLASMA BACKGROUND ELECTRON DENSITY MODELS -------- ##
 
 include("electron_density.jl")
@@ -59,8 +87,9 @@ include("dperp.jl")
 
 ## -------- BACKGROUND MODELS STRUCTURE (PLASMA + MAGNETIC FIELD) -------- ##
 
-struct BackgroundModels{B,S,PED,PET,PID,PIT,PIV,DP} # background models
+struct BackgroundModels{B,EE,S,PED,PET,PID,PIT,PIV,DP} # background models
     B::B                              # magnetic field model
+    E::EE
     sheath::S                         # sheath model
     plasma_elec_dens::PED             # plasma electron density background model (e.g. Boltzmann factor)
     plasma_elec_temp::PET             # plasma electron temp background model (e.g. constant)
@@ -69,6 +98,7 @@ struct BackgroundModels{B,S,PED,PET,PID,PIT,PIV,DP} # background models
     plasma_mainion_vel::PIV           # plasma main ion velocity background model (e.g. constant)
     plasma_dperp::DP                  # plasma anomalous transport background model (e.g. constant)
 end
+
 
 # calculates plasma quantities at particle's position
 update_plasma!(plasma, particles, models::BackgroundModels, ip::Int64) = update_plasma!(

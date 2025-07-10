@@ -5,7 +5,6 @@ using Random # import Random standard library
 using Interpolations
 using ADAS # you need ADAS package. To add it, type in REPL: ] add https://github.com/ProjectTorreyPines/ADAS.jl
 # for a specific branch write in REPL: ]  https://github.com/ProjectTorreyPines/ADAS.jl#dev_branch_name
-using Interpolations
 using SpecialFunctions # contains erf and erfinv
 
 export AbstractNumericalParameters, AbstractMCSimulation, AbstractThreadedMCSimulation, AbstractSimulation,
@@ -18,7 +17,8 @@ export AbstractNumericalParameters, AbstractMCSimulation, AbstractThreadedMCSimu
        ElectricField, MagneticField, ElectricPotential, ElectronDensity, MainIonDensity,
        ElectronTemperature, MainIonTemperature, MainIonVelocity, AnomalousDiffusion,
        IonizationRates, DeltaTimeDistribution, ExpTimeDistribution, NoIonizationRates,
-    AbstractIonizationRates, IonizationRateData, Weights
+    AbstractIonizationRates, IonizationRateData, Weights, AbstractParticleData, update!,
+    update_ionization_state!
 include("types.jl")
 ### !!!! DO NOT CHANGE ORDER OF INCLUDED FILES !!!! ###
 

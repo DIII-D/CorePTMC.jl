@@ -1,5 +1,5 @@
 ## -------- PARTICLE PROPERTIES TYPES -------- ##
-
+abstract type AbstractParticleData end
 abstract type ParticlePositionType end
 abstract type ParticleVelocityType end
 

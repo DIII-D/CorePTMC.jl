@@ -43,7 +43,7 @@ function boris_pusher!(p::ParticlePosition, v::ParticleVelocity, E::ElectricFiel
 end
 
 #kernel version
-function boris_pusher!(p::ParticlePosition, v::ParticleVelocity, E::ElectricField, B::MagneticField, helpers::Helpers, dt::Float64, i::Int64)
+function boris_pusher!(p::ParticlePosition, v::ParticleVelocity, E::ElectricField, B::MagneticField, helpers::Helpers, dt::Float64, ip::Int64)
     α = helpers.α
     v₋ = helpers.v₋
     v′ = helpers.v′
@@ -52,36 +52,73 @@ function boris_pusher!(p::ParticlePosition, v::ParticleVelocity, E::ElectricFiel
 
 
     # Half acceleration due to electric field
-    # α = 0.5 * (q / m) * dt 
-    v₋.x[i] = v.x[i] + α[i] * E.x[i]
-    v₋.y[i] = v.y[i] + α[i] * E.y[i]
-    v₋.z[i] = v.z[i] + α[i] * E.z[i]
+    # α = 0.5 * (q / m) * dt
+    v₋.x[ip] = v.x[ip] + α[ip] * E.x[ip]
+    v₋.y[ip] = v.y[ip] + α[ip] * E.y[ip]
+    v₋.z[ip] = v.z[ip] + α[ip] * E.z[ip]
 
     # Rotation due to magnetic field
 
 
-    v′.x[i] = v₋.x[i] + α[i] * cross_x(v₋, B, i)
-    v′.y[i] = v₋.y[i] + α[i] * cross_y(v₋, B, i)
-    v′.z[i] = v₋.z[i] + α[i] * cross_z(v₋, B, i)
-    norm_square_B = dot(B, B, i)
-    s.x[i] = 2.0 * α[i] * B.x[i] / (1.0 + α[i]^2 * norm_square_B)
-    s.y[i] = 2.0 * α[i] * B.y[i] / (1.0 + α[i]^2 * norm_square_B)
-    s.z[i] = 2.0 * α[i] * B.z[i] / (1.0 + α[i]^2 * norm_square_B)
+    v′.x[ip] = v₋.x[ip] + α[ip] * cross_x(v₋, B, ip)
+    v′.y[ip] = v₋.y[ip] + α[ip] * cross_y(v₋, B, ip)
+    v′.z[ip] = v₋.z[ip] + α[ip] * cross_z(v₋, B, ip)
+    norm_square_B = dot(B, B, ip)
+    s.x[ip] = 2.0 * α[ip] * B.x[ip] / (1.0 + α[ip]^2 * norm_square_B)
+    s.y[ip] = 2.0 * α[ip] * B.y[ip] / (1.0 + α[ip]^2 * norm_square_B)
+    s.z[ip] = 2.0 * α[ip] * B.z[ip] / (1.0 + α[ip]^2 * norm_square_B)
 
-    v₊.x[i] = v₋.x[i] + cross_x(v′, s, i)
-    v₊.y[i] = v₋.y[i] + cross_y(v′, s, i)
-    v₊.z[i] = v₋.z[i] + cross_z(v′, s, i)
+    v₊.x[ip] = v₋.x[ip] + cross_x(v′, s, ip)
+    v₊.y[ip] = v₋.y[ip] + cross_y(v′, s, ip)
+    v₊.z[ip] = v₋.z[ip] + cross_z(v′, s, ip)
 
     # Final update to velocity
 
-    v.x[i] = v₊.x[i] + α[i] * E.x[i]
-    v.y[i] = v₊.y[i] + α[i] * E.y[i]
-    v.z[i] = v₊.z[i] + α[i] * E.z[i]
+    v.x[ip] = v₊.x[ip] + α[ip] * E.x[ip]
+    v.y[ip] = v₊.y[ip] + α[ip] * E.y[ip]
+    v.z[ip] = v₊.z[ip] + α[ip] * E.z[ip]
 
     # Update position using new velocity
     p.x[i] += v.x[i] * dt
     p.y[i] += v.y[i] * dt
     p.z[i] += v.z[i] * dt
+end
+
+#kernel version
+function boris_velocity_pusher!(v::ParticleVelocity, E::ElectricField, B::MagneticField, helpers::Helpers, ip::Int64)
+    α = helpers.α
+    v₋ = helpers.v₋
+    v′ = helpers.v′
+    v₊ = helpers.v₊
+    s = helpers.s
+
+
+    # Half acceleration due to electric field
+    # α = 0.5 * (q / m) * dt
+    v₋.x[ip] = v.x[ip] + α[ip] * E.x[ip]
+    v₋.y[ip] = v.y[ip] + α[ip] * E.y[ip]
+    v₋.z[ip] = v.z[ip] + α[ip] * E.z[ip]
+
+    # Rotation due to magnetic field
+
+
+    v′.x[ip] = v₋.x[ip] + α[ip] * cross_x(v₋, B, ip)
+    v′.y[ip] = v₋.y[ip] + α[ip] * cross_y(v₋, B, ip)
+    v′.z[ip] = v₋.z[ip] + α[ip] * cross_z(v₋, B, ip) 
+    γ = 1.0 + α[ip]^2 * dot(B, B, ip)
+    s.x[ip] = 2.0 * α[ip] * B.x[ip] / γ
+    s.y[ip] = 2.0 * α[ip] * B.y[ip] / γ
+    s.z[ip] = 2.0 * α[ip] * B.z[ip] / γ
+
+    v₊.x[ip] = v₋.x[ip] + cross_x(v′, s, ip)
+    v₊.y[ip] = v₋.y[ip] + cross_y(v′, s, ip)
+    v₊.z[ip] = v₋.z[ip] + cross_z(v′, s, ip)
+
+    # Final update to velocity
+
+    v.x[ip] = v₊.x[ip] + α[ip] * E.x[ip]
+    v.y[ip] = v₊.y[ip] + α[ip] * E.y[ip]
+    v.z[ip] = v₊.z[ip] + α[ip] * E.z[ip]
 end
 
 update_α!(α, Z, m, dt) = @. α = 0.5 * (Z * ee / m) * dt
