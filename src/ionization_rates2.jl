@@ -121,3 +121,4 @@ end
 # SCD * nₑ is equal to the ionization rate ν_iz  
 
 update_iz_rates!(iz::IonizationRates, Z, ne, Te, i) = iz.ν_iz[i] = iz.data.rate(Z[i], ne.value[i], Te.value[i]) * ne.value[i]
+update_iz_rates!(iz::IonizationRates{Missing}, args...) = nothing

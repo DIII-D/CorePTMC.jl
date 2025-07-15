@@ -25,7 +25,8 @@ Ez(p::ParticlePosition, model::Abstract0DSheathModel, args...) = 0.0
 # If sheath model is 1D - regardless of particle position, sheath model type and any other argument -> Ex = Ey = 0
 Ex(p::ParticlePosition, model::Abstract1DSheathModel, args...) = 0.0
 Ey(p::ParticlePosition, model::Abstract1DSheathModel, args...) = 0.0
-
+Ex(model::Abstract1DSheathModel, args...) = 0.0
+Ey(model::Abstract1DSheathModel, args...) = 0.0
 # potential drop with respect to reference (plasma potential)
 # Δϕ = ϕ_wall - ϕ_0
 # Up to date, ϕ_0 ≡ 0. Future developments will allow the user to modify the plasma potential 
@@ -110,23 +111,59 @@ function Ez(p::ParticlePosition, model::Quadratic1DSheathModel)
     return @. 2 * Δϕ / model.δ_sheath * (1 - Δz / model.δ_sheath) * heaviside(model.δ_sheath - Δz)
 end
 
+function Ez(Δz::Float64, model::Quadratic1DSheathModel)::Float64
+    Δϕ = model.ϕ_wall - model.ϕ_0
+    model.δ_sheath - Δz < 0 && return 0.0
+    return  2 * Δϕ / model.δ_sheath * (1 - Δz / model.δ_sheath)
+end
+
+function Ez(model::Quadratic1DSheathModel, Δz::Float64, id::Int64)::Float64
+    Δϕ = model.ϕ_wall[id] - model.ϕ_0[id]
+    model.δ_sheath[id] - Δz < 0 && return 0.0
+    return 2 * Δϕ / model.δ_sheath[id] * (1 - Δz / model.δ_sheath[id])
+end
+
 
 # MISCELLANEOUS FUNCTIONS
 heaviside(x) = @. (1.0 + sign(x)) / 2
 
 
 ## ---- exponential sheath model ---- # from J. Guterl NME 2021 W redeposition
-struct Exponential1DSheathModel <: Abstract1DSheathModel
-    ϕ_0::Float64
-    ϕ_wall::Float64
-    δ_sheath::Float64
-    z_surface::Float64
-    β_sheath::Float64
+struct Exponential1DSheathModel{T,U,V} <: Abstract1DSheathModel
+    ϕ_0::T
+    ϕ_wall::T
+    δ_sheath::T
+    ρᵢ::U
+    Λ::V
+    f_sheath::T
+    z_surface::T
+    β_sheath::T
+    Δz_threshold::T
 end
 
+exponential_sheath_model(; Λ=-3, f_sheath=5.0, β_sheath=4.0, ρᵢ) = Exponential1DSheathModel(0.0, 0.0, 0.0, ρᵢ, Λ, f_sheath, 0.0, β_sheath, 0.0)
+(model::Exponential1DSheathModel{Float64})(N::Int64) = Exponential1DSheathModel(zeros(N) .+ model.ϕ_0, zeros(N) .+ model.ϕ_wall, zeros(N) .+ model.δ_sheath, model.ρᵢ, zeros(N) .+ model.Λ, zeros(N) .+ model.f_sheath, zeros(N) .+ model.z_surface, zeros(N) .+ model.β_sheath, zeros(N) .+ model.Δz_threshold)
 
-exponential_sheath_model(Tₑ, ρᵢ; Λ=-3, f_sheath=5.0, β_sheath=4.0) = Exponential1DSheathModel(0.0, Λ * Tₑ, f_sheath * ρᵢ, 0.0, β_sheath)
+struct Computeρᵢ
+    el::Element
+    γ::Float64
+end
+(c::Computeρᵢ)(Tᵢ::Float64, B::Float64) = B < 1e-10 || c.el.Z < 1 ? error("Invalid parameters for ρᵢ computation: B = $B, Z = $(c.el.Z)") : sqrt(c.γ * ee * Tᵢ / c.el.m) / (c.el.Z * ee * B / c.el.m)
+# (c::Computeρᵢ)(Tᵢ::MainIonTemperature, B::MagneticField, i::Int64) = sqrt(c.γ * ee * Tᵢ[i] / c.el.m) / (c.el.Z * ee * norm(B,i) / c.el.m)
 
+ρᵢ = Computeρᵢ
+Computeρᵢ(el::Symbol, args...; γ=1.0) = Computeρᵢ(get_element(el, args...), γ)
+
+exponential_sheath_model(Tₑ::Float64, ρᵢ; Λ=-3, f_sheath=5.0, β_sheath=4.0) = Exponential1DSheathModel(0.0, Λ * Tₑ, f_sheath * ρᵢ, ρᵢ, f_sheath, 0.0, β_sheath, 0.0)
+# function setup_model!(model::Exponential1DSheathModel, Tᵢ, B)
+#     model.ϕ_0, model.ϕ_wall, model.δ_sheath= 0.0, Λ * Tₑ, f_sheath * ρᵢ(Tᵢ, B)
+#      nothing
+# end
+
+function setup_model!(model::Exponential1DSheathModel, ϕ ::Float64,  Tₑ::Float64, B::Float64, i::Int)
+    model.ϕ_0[i], model.ϕ_wall[i], model.δ_sheath[i], model.Δz_threshold[i] = ϕ, model.Λ[i] * Tₑ, model.f_sheath[i] * model.ρᵢ(Tₑ, B), model.f_sheath[i] * model.ρᵢ(Tₑ, B) / model.β_sheath[i] * 10.0
+    nothing
+end
 function ϕ(p::ParticlePosition, model::Exponential1DSheathModel, i)
     Δϕ = model.ϕ_wall - model.ϕ_0
     Δz = p.z[i] - model.z_surface
@@ -141,6 +178,11 @@ function ϕ(p::ParticlePosition, model::Exponential1DSheathModel)
     return @. Δϕ * exp(-model.β_sheath * Δz / model.δ_sheath)
 end
 
+function ϕ(model::Exponential1DSheathModel, Δz::Float64, i::Int64)::Float64
+    Δϕ = model.ϕ_wall[i] - model.ϕ_0[i]
+    return Δϕ * exp(-model.β_sheath[i] * Δz / model.δ_sheath[i])
+end
+compute_ϕ(args...; kw...) = ϕ(args...; kw...)
 function Ez(p::ParticlePosition, model::Exponential1DSheathModel, i)
     Δϕ = model.ϕ_wall - model.ϕ_0
     Δz = p.z[i] - model.z_surface
@@ -153,6 +195,17 @@ function Ez(p::ParticlePosition, model::Exponential1DSheathModel)
     Δz = p.z .- model.z_surface
 
     return @. Δϕ * model.β_sheath / model.δ_sheath * exp(-model.β_sheath * Δz / model.δ_sheath)
+end
+
+function Ez(Δz::Float64, model::Exponential1DSheathModel)
+    Δϕ = model.ϕ_wall - model.ϕ_0
+
+    return @. Δϕ * model.β_sheath / model.δ_sheath * exp(-model.β_sheath * Δz / model.δ_sheath)
+end
+
+function Ez(model::Exponential1DSheathModel, Δz::Float64, id::Int64)
+    Δϕ = model.ϕ_wall[id] - model.ϕ_0[id]
+    return @. Δϕ * model.β_sheath[id] / model.δ_sheath[id] * exp(-model.β_sheath[id] * Δz / model.δ_sheath[id])
 end
 
 function grad_Ez(p::ParticlePosition, model::Exponential1DSheathModel)
@@ -520,4 +573,20 @@ end
 
 function update_ϕ!(φ::ElectricPotential, p::ParticlePosition, model::AbstractSheathModel, i)
     φ.value[i] = ϕ(p, model, i)
+end
+
+function sheath_model(model::Symbol; kw...)
+    if model == :exponential
+        return exponential_sheath_model(;kw...)
+    elseif model == :linear
+        return linear_sheath_model(;kw...)
+    # elseif model == :quadratic
+    #     return quadratic_sheath_model(;kw...)
+    # elseif model == :borodkina
+    #     return borodkina_sheath_model(;kw...)
+    # elseif model == :brooks
+    #     return brooks_sheath_model(;kw...)
+    else
+        error("Unknown sheath model")
+    end
 end

@@ -205,6 +205,23 @@ function convert_2_velocity!(v::ParticleVelocity, E_sampled::Vector{Float64}, θ
     @. v.z = v_mod * cos(θ_sampled)
 end
 
+function convert_2_velocity!(v::ParticleVelocity, E_sampled::Vector{Float64}, θ_sampled::Vector{Float64}, ϕ_sampled::Vector{Float64}, el::Element, pid::Vector{Int64})
+    v_mod = sqrt.(2 * ee .* E_sampled ./ el.m)
+     v.x[pid] .= @. v_mod * sin(θ_sampled) * cos(ϕ_sampled)
+     v.y[pid] .= @. v_mod * sin(θ_sampled) * sin(ϕ_sampled)
+     v.z[pid] .= @. v_mod * cos(θ_sampled)
+end
+
+function convert_2_velocity!(v::ParticleVelocity, E_sampled::Vector{Float64}, θ_sampled::Vector{Float64}, ϕ_sampled::Vector{Float64}, el::Element, M, pid::Vector{Int64})
+    v_mod = sqrt.(2 * ee .* E_sampled ./ el.m)
+    v_x = @. v_mod * sin(θ_sampled) * cos(ϕ_sampled)
+    v_y = @. v_mod * sin(θ_sampled) * sin(ϕ_sampled)
+    v_z = @. v_mod * cos(θ_sampled)
+    v.x[pid] .= v_x * M[1,1] + v_y * M[1,2] + v_z * M[1,3]
+    v.y[pid] .= v_x * M[2,1] + v_y * M[2,2] + v_z * M[2,3]
+    v.z[pid] .= v_x * M[3,1] + v_y * M[3,2] + v_z * M[3,3]
+end
+
 ## converting from (v, θ) system of coordinates to (vx = 0, vy = v*sin(θ), vz = v*cos(θ)) 
 
 function convert_2_velocity!(v::ParticleVelocity, E_sampled::Vector{Float64}, θ_sampled::Vector{Float64}, el::Element)

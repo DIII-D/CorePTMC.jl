@@ -12,13 +12,14 @@ export AbstractNumericalParameters, AbstractMCSimulation, AbstractThreadedMCSimu
        ParticlePosition, ParticleVelocity, ParticlesPosition, ParticlesVelocity,
        ParticleProperties, ParticlesProperties, ParticleWeights, ParticlesWeights,
        SheathModel, MagneticField, PlasmaBackground,
-       IonizationRates, NoIonizationRates,
+    IonizationRates, NoIonizationRates, ParticleSurfaceDistance,
     PusherHelpers, ForcesFlags, Element, SpatialParticleCount, ScalarField, Particles, ParticlesData,
        ElectricField, MagneticField, ElectricPotential, ElectronDensity, MainIonDensity,
        ElectronTemperature, MainIonTemperature, MainIonVelocity, AnomalousDiffusion,
        IonizationRates, DeltaTimeDistribution, ExpTimeDistribution, NoIonizationRates,
     AbstractIonizationRates, IonizationRateData, Weights, AbstractParticleData, update!,
-    update_ionization_state!
+    update_ionization_state!, sputtered_velocity_distribution!, energy_thompson_distribution,
+    poloidal_cosine_distribution, azimuthal_flat_distribution, ρᵢ, nₑ_model, BoltzmannElectronDensityModel, Tₑ_model, D_perp_model
 include("types.jl")
 ### !!!! DO NOT CHANGE ORDER OF INCLUDED FILES !!!! ###
 

@@ -1,10 +1,30 @@
 ## -------- PLASMA BACKGROUND ELECTRON TEMPERATURE MODELS -------- ## 
 
 # CONSTANT Tₑ
-struct ConstantElecTempModel <: AbstractPlasmaModel  # AbstractPlasmaModel defined in 'plasma.jl'
-    Tₑ::Float64 # Tₑ at sheath entrance 
+struct TₑSurfaceModel{T} <: AbstractPlasmaModel  # AbstractPlasmaModel defined in 'plasma.jl'
+    Tₑ::T# Tₑ at sheath entrance 
 end
+(model::TₑSurfaceModel)(Ns::Int64) = TₑSurfaceModel(zeros(Float64, Ns) .+ model.Tₑ)
+TₑSurfaceModel() = TₑSurfaceModel(0.0)
+struct ConstantElecTempModel{T} <: AbstractPlasmaModel  # AbstractPlasmaModel defined in 'plasma.jl'
+    Tₑ::T# Tₑ at sheath entrance 
+end
+ConstantElecTempModel() = ConstantElecTempModel(0.0)
+(model::ConstantElecTempModel)(Ns::Int64) = ConstantElecTempModel(zeros(Float64, Ns) .+ model.Tₑ)
 constant_elec_temp(args...; kw...) = ConstantElecTempModel(args...; kw...)
+function Tₑ_model(model::Symbol) 
+    model == :surface && return TₑSurfaceModel()
+    error("Unknown electron temperature model: $model")
+end 
+
+function setup_model!(model::ConstantElecTempModel, i::Int)
+    nothing
+end
+
+function setup_model!(model::TₑSurfaceModel, Tₑ::Float64, i::Int)
+    model.Tₑ[i] = Tₑ
+    nothing
+end
 
 Tₑ_func(p::ParticlePosition, Tₑ_model::ConstantElecTempModel, i::Int64) = Tₑ_model.Tₑ 
 
@@ -41,3 +61,5 @@ end
 function update_Tₑ!(Tₑ::ElectronTemperature,  p::ParticlePosition, Tₑ_model::AbstractPlasmaModel)
     @. Tₑ.value = Tₑ_func(p, Tₑ_model)
 end
+
+compute_Tₑ(model::TₑSurfaceModel, Te, i::Int64) = model.Tₑ[i]

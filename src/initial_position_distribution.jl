@@ -17,4 +17,6 @@ function set_position!(p::ParticlePosition, p0::Vector{Float64}; kw...)
     p.z .= p0[3]
 end
 
+
+
 set_position!(p::ParticlePosition, p0::Float64; kw...) = set_position!(p, [p0, p0, p0]; kw...)

@@ -46,7 +46,8 @@ function vector3D_mod(vec3D::Vector3D)
     return sqrt.(vec3D.x .^ 2 + vec3D.z .^ 2 + vec3D.z .^ 2)
 end
 
-dot(A, B, i::Int64) = B.x[i] * A.x[i] + A.y[i] * B.y[i] + A.z[i] * B.z[i]
+dot(A::Vector3D, B::Vector3D, i::Int64) = B.x[i] * A.x[i] + A.y[i] * B.y[i] + A.z[i] * B.z[i]
+norm(A::Vector3D, i::Int64) = sqrt(dot(A, A, i))
 
 # Vector3D sum
 function vector3D_sum(A::AbstractVector3D{U}, B::AbstractVector3D{U}) where U

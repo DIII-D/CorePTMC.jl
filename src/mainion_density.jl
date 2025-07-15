@@ -8,7 +8,6 @@ end
 struct ConstantMainIonDensityModel <: AbstractPlasmaModel
     nᵢ₀::Float64
 end
-
 constant_mainion_density(args...; kw...) = ConstantMainIonDensityModel(args...; kw...)
 function update_nᵢ!(nᵢ::MainIonDensity, p, ϕ::ElectricPotential, nᵢ_model::ConstantMainIonDensityModel, i)
     nᵢ.value[i] = nᵢ_model.nᵢ₀
