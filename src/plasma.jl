@@ -2,12 +2,14 @@ abstract type AbstractPlasmaModel end
 
 ## -------- PLASMA BACKGROUND STRUCTURE AND CONSTRUCTOR  -------- ##
 
-struct PlasmaBackground{Bg,Ne,Ni,Te,Ti,Vi,U,V,W,DP}  # background data
+struct PlasmaBackground{Bg,Ne,Ni,Te,Ti,GTe,GTi,Vi,U,V,W,DP}  # background data
     el_bg::Bg
     nₑ::Ne
     nᵢ::Ni    
     Tₑ::Te
     Tᵢ::Ti
+    ∇Tₑ::GTe
+    ∇Tᵢ::GTi
     vᵢ::Vi  # plasma main ion average velocity
     E::U
     B::V
@@ -23,6 +25,8 @@ PlasmaBackground(Np::Int64, main_ion::Element) = PlasmaBackground(
     MainIonDensity(Np),
     ElectronTemperature(Np),
     MainIonTemperature(Np), 
+    ParallelGradientElectronTemperature(Np),
+    ParallelGradientMainIonTemperature(Np),
     MainIonVelocity(Np),
     ElectricField(Np), 
     MagneticField(Np), 
@@ -36,6 +40,8 @@ PlasmaBackground(Np::Int64) = PlasmaBackground(
     MainIonDensity(Np),
     ElectronTemperature(Np),
     MainIonTemperature(Np),
+    ParallelGradientElectronTemperature(Np),
+    ParallelGradientMainIonTemperature(Np),
     MainIonVelocity(Np),
     ElectricField(Np),
     MagneticField(Np),
@@ -49,6 +55,8 @@ PlasmaBackground(Nc::Int64, Nv::Int64) = PlasmaBackground(
     MainIonDensity(Nc, Nv),
     ElectronTemperature(Nc, Nv),
     MainIonTemperature(Nc, Nv),
+    ParallelGradientElectronTemperature(Nc, Nv),
+    ParallelGradientMainIonTemperature(Nc, Nv),
     MainIonVelocity(Nc, Nv),
     ElectricField(Nc, Nv),
     MagneticField(Nc, Nv),

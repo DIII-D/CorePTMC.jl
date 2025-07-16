@@ -73,8 +73,10 @@ abstract type ElectricPotentialType end
 abstract type SpatialParticleCountType end
 abstract type ElectronDensityType end
 abstract type ElectronTemperatureType end
+abstract type ParallelGradientElectronTemperatureType end
 abstract type MainIonDensityType end
 abstract type MainIonTemperatureType end
+abstract type ParallelGradientMainIonTemperatureType end
 abstract type MainIonVelocityType end
 abstract type AnomalousDiffusionType end
 
@@ -84,6 +86,8 @@ ElectronDensity = AbstractScalarField{ElectronDensityType}
 MainIonDensity = AbstractScalarField{MainIonDensityType}
 ElectronTemperature = AbstractScalarField{ElectronTemperatureType}
 MainIonTemperature = AbstractScalarField{MainIonTemperatureType}
+ParallelGradientElectronTemperature = AbstractVector3D{ParallelGradientElectronTemperatureType}
+ParallelGradientMainIonTemperature = AbstractVector3D{ParallelGradientMainIonTemperatureType}
 ElectricPotential = AbstractScalarField{ElectricPotentialType}
 SpatialParticleCount = AbstractScalarField{SpatialParticleCountType}
 AnomalousDiffusion = AbstractScalarField{AnomalousDiffusionType}
