@@ -79,9 +79,9 @@ function boris_pusher!(p::ParticlePosition, v::ParticleVelocity, E::ElectricFiel
     v.z[ip] = v₊.z[ip] + α[ip] * E.z[ip]
 
     # Update position using new velocity
-    p.x[i] += v.x[i] * dt
-    p.y[i] += v.y[i] * dt
-    p.z[i] += v.z[i] * dt
+    p.x[ip] += v.x[ip] * dt
+    p.y[ip] += v.y[ip] * dt
+    p.z[ip] += v.z[ip] * dt
 end
 
 #kernel version

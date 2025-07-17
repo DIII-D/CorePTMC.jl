@@ -270,7 +270,7 @@ end
 function vcat_preserve_type(vec::Vector{<:Weights{T}}) where T
     return Weights(vcat(vec...))
 end
-
+vcat_vector3D
 function vcat_selector(A, B)
     if A isa AbstractVector3D && B isa AbstractVector3D
         merged = vcat_vector3D(A, B)
@@ -299,7 +299,6 @@ function vcat_selector(A, Bs...)
 end
 
 function vcat_selector(A::Vector)
-    println("A::Vector")
     if A isa Vector{<:AbstractVector3D} 
         merged = vcat_vector3D(A)
     elseif A isa Vector{<:AbstractScalarField} && !(A isa Vector{<:ScalarField{<:Array, SpatialParticleCountType}})
@@ -307,7 +306,6 @@ function vcat_selector(A::Vector)
     elseif A isa Vector{<:RandomGenerators}
         merged = A[1]
     elseif A isa Vector{<:ScalarField{<:Array, SpatialParticleCountType}}
-        println("A isa SpatialParticleCountType")
         merged = scalarfield_sum(A)
     else
         merged = vcat_preserve_type(A)

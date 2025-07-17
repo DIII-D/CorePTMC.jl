@@ -47,9 +47,9 @@ function velocity_maxwellian_distribution!(v::ParticleVelocity, c::Vector{Float6
     χx = random_vector(Np)
     χy = random_vector(Np)
     χz = random_vector(Np)
-    v.x = @. c[1] + erfinv(2 * χx.value - 1) / sqrt(β)
-    @. v.y = c[2] + erfinv(2 * χy.value - 1) / sqrt(β)
-    @. v.z = c[3] + erfinv(2 * χz.value - 1) / sqrt(β)
+    v.x = @. c[1] + SpecialFunctions.erfinv(2 * χx.value - 1) / sqrt(β)
+    @. v.y = c[2] + SpecialFunctions.erfinv(2 * χy.value - 1) / sqrt(β)
+    @. v.z = c[3] + SpecialFunctions.erfinv(2 * χz.value - 1) / sqrt(β)
 end
 
 ## 1D Maxwellian distribution
@@ -100,6 +100,22 @@ end
 function energy_thompson_distribution(Ecutoff::Float64, el_target::Element, Np::Int64)
     Es = el_target.Es
     E = collect(logrange(0.01, Ecutoff * 2, 50))
+    fE = @. E / (E + Es)^3 * (1 - sqrt((E + Es) / (Ecutoff + Es))) * (E <= Ecutoff)
+
+    if isnan(Es)
+        error("Es for $(String(el_target.symbol)) not present in database, update it in src/elements.jl")
+    end
+
+
+    PDF = fE ./ trapz(E, fE)
+
+    E_sampled = distribution_sampling(E, PDF, Np)
+
+    return E_sampled, E, PDF
+end
+
+function energy_thompson_distribution(E::Vector{Float64}, Ecutoff::Float64, el_target::Element, Np::Int64)
+    Es = el_target.Es
     fE = @. E / (E + Es)^3 * (1 - sqrt((E + Es) / (Ecutoff + Es))) * (E <= Ecutoff)
 
     if isnan(Es)

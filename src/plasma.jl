@@ -1,17 +1,22 @@
 abstract type AbstractPlasmaModel end
 
-struct FieldAlignedUnitVector{T}
+struct FieldAlignedUnitVector{T,U,V}
     e_rad::T
-    e_dia::T
-    e_para::T
+    e_dia::U
+    e_para::V
 end
 
 FieldAlignedUnitVector(Np::Int64) = FieldAlignedUnitVector(
     UnitaryRadialComponent(Np),
-    UnitaryDiametricComponent(Np),
+    UnitaryDiamagneticComponent(Np),
     UnitaryParallelComponent(Np)
 )
 
+
+vcat_preserve_type(vec::Vector{<:AbstractVector3D}) = vcat_vector3D(vec)
+function vcat_preserve_type(vec::Vector{<:FieldAlignedUnitVector})
+    return FieldAlignedUnitVector([vcat_preserve_type([getproperty(v,fn) for v in vec]) for fn in fieldnames(FieldAlignedUnitVector)]...)
+end
 struct PlasmaBackground{Bg,Ne,Ni,Te,Ti,GTe,GTi,Vi,U,V,W,DP,F}  # background data
     el_bg::Bg
     nₑ::Ne
@@ -109,9 +114,8 @@ include("dperp.jl")
 
 ## -------- BACKGROUND MODELS STRUCTURE (PLASMA + MAGNETIC FIELD) -------- ##
 
-struct BackgroundModels{B,EE,S,PED,PET,PID,PIT,PIV,DP} # background models
-    B::B                              # magnetic field model
-    E::EE
+struct BackgroundModels{BB,S,PED,PET,PID,PIT,PIV,DP} # background models
+    B::BB                              # magnetic field model
     sheath::S                         # sheath model
     plasma_elec_dens::PED             # plasma electron density background model (e.g. Boltzmann factor)
     plasma_elec_temp::PET             # plasma electron temp background model (e.g. constant)
