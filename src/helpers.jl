@@ -1,12 +1,12 @@
 ## -------- HELPERS STRUCTURE AND CONSTRUCTOR  -------- ##
 
 ## structure for RNG
-struct RandomGenerators{I,J}
+struct RandomGenerators{I,J,P}
     iz::I
     v₀::J
 end
 
-RandomGenerators(Np::Int64; seed=123) = RandomGenerators(MersenneTwister(seed), MersenneTwister(seed))
+RandomGenerators(Np::Int64; seed=123) = RandomGenerators(MersenneTwister(seed))
 
 # structure for Helpers
 struct Helpers{R<:RandomGenerators}

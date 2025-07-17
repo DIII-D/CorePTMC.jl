@@ -36,4 +36,8 @@ function update!(r::Vector3D{Vector{Float64},<:RandomGeneratorType}, m) # 3D vec
     r.z = rand!(m, r.z)
 end
 
+function update_random_generators!(helpers, ip::Int64)
+     update!(helpers.χ_iz, ip) # updates the iz random number generator for particle ip
+
+end
 # E.g.: r = Vector3D{Vector{Float64}, RandomGeneratorType}(1); m = Xoshiro(seed); update!(r,m;seed) updates r with 3 random values starting from seed 123 and using Xoshiro RNG

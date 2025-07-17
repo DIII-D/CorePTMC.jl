@@ -5,7 +5,7 @@ using Random # import Random standard library
 using Interpolations
 using ADAS # you need ADAS package. To add it, type in REPL: ] add https://github.com/ProjectTorreyPines/ADAS.jl
 # for a specific branch write in REPL: ]  https://github.com/ProjectTorreyPines/ADAS.jl#dev_branch_name
-using SpecialFunctions # contains erf and erfinv
+import SpecialFunctions # contains erf and erfinv
 
 export AbstractNumericalParameters, AbstractMCSimulation, AbstractThreadedMCSimulation, AbstractSimulation,
        AbstractParticle, AbstractParticles, AbstractParticleVelocity, AbstractParticlesVelocity,

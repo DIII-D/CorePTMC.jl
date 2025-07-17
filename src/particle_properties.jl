@@ -39,7 +39,7 @@ function Particles(Z::Float64, m::Float64, Zmax::Float64, Np::Int64; ids::Union{
         @assert length(ids) == Np "particles id provided do not match the number of particles: np = $Np;  length(ids) = $(length(ids))"
     end
     # Debugging: Print out types
-    println("Creating Particles with Z = $Z (", typeof(Z), "), m = $m (", typeof(m), "), Zmax = $Zmax (", typeof(Zmax), "), Np = $Np (", typeof(Np), ") ")
+    #println("Creating Particles with Z = $Z (", typeof(Z), "), m = $m (", typeof(m), "), Zmax = $Zmax (", typeof(Zmax), "), Np = $Np (", typeof(Np), ") ")
 
     # constructing particle structure
     return Particles(

@@ -1,8 +1,18 @@
 abstract type AbstractPlasmaModel end
 
-## -------- PLASMA BACKGROUND STRUCTURE AND CONSTRUCTOR  -------- ##
+struct FieldAlignedUnitVector{T}
+    e_rad::T
+    e_dia::T
+    e_para::T
+end
 
-struct PlasmaBackground{Bg,Ne,Ni,Te,Ti,GTe,GTi,Vi,U,V,W,DP}  # background data
+FieldAlignedUnitVector(Np::Int64) = FieldAlignedUnitVector(
+    UnitaryRadialComponent(Np),
+    UnitaryDiametricComponent(Np),
+    UnitaryParallelComponent(Np)
+)
+
+struct PlasmaBackground{Bg,Ne,Ni,Te,Ti,GTe,GTi,Vi,U,V,W,DP,F}  # background data
     el_bg::Bg
     nₑ::Ne
     nᵢ::Ni    
@@ -15,6 +25,7 @@ struct PlasmaBackground{Bg,Ne,Ni,Te,Ti,GTe,GTi,Vi,U,V,W,DP}  # background data
     B::V
     ϕ::W
     D_perp::DP  # anomalous transport
+    e::F
 end
 
 # initialization of plasma background
@@ -31,7 +42,8 @@ PlasmaBackground(Np::Int64, main_ion::Element) = PlasmaBackground(
     ElectricField(Np), 
     MagneticField(Np), 
     ElectricPotential(Np),
-    AnomalousDiffusion(Np)
+    AnomalousDiffusion(Np),
+    FieldAlignedUnitVector(Np)
 )
 
 PlasmaBackground(Np::Int64) = PlasmaBackground(
@@ -46,7 +58,8 @@ PlasmaBackground(Np::Int64) = PlasmaBackground(
     ElectricField(Np),
     MagneticField(Np),
     ElectricPotential(Np),
-    AnomalousDiffusion(Np)
+    AnomalousDiffusion(Np),
+    FieldAlignedUnitVector(Np)
 )
 
 PlasmaBackground(Nc::Int64, Nv::Int64) = PlasmaBackground(
@@ -61,7 +74,8 @@ PlasmaBackground(Nc::Int64, Nv::Int64) = PlasmaBackground(
     ElectricField(Nc, Nv),
     MagneticField(Nc, Nv),
     ElectricPotential(Nc, Nv),
-    AnomalousDiffusion(Nc, Nv)
+    AnomalousDiffusion(Nc, Nv),
+    FieldAlignedUnitVector(Nc, Nv)
 )
 
 

@@ -80,6 +80,10 @@ abstract type ParallelGradientMainIonTemperatureType end
 abstract type MainIonVelocityType end
 abstract type AnomalousDiffusionType end
 
+abstract type UnitaryRadialComponentType end
+abstract type UnitaryDiamagneticComponentType end
+abstract type UnitaryParallelComponentType end
+
 ## Assigning types and subtypes to variables
 
 ElectronDensity = AbstractScalarField{ElectronDensityType}
@@ -94,6 +98,10 @@ AnomalousDiffusion = AbstractScalarField{AnomalousDiffusionType}
 MainIonVelocity = AbstractVector3D{MainIonVelocityType}
 ElectricField = AbstractVector3D{ElectricFieldType}
 MagneticField = AbstractVector3D{MagneticFieldType}
+UnitaryRadialComponent = AbstractVector3D{UnitaryRadialComponentType}
+UnitaryDiamagneticComponent = AbstractVector3D{UnitaryDiamagneticComponentType}
+UnitaryParallelComponent = AbstractVector3D{UnitaryParallelComponentType}
+
 
 abstract type AbstractNumericalParameters end
 abstract type AbstractThreadedMCSimulation end

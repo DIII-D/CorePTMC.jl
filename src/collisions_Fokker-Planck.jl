@@ -1,3 +1,52 @@
+
+
+struct FokkerPlanckCollisionOperator{W,T,V,G}
+    mᵢ::Float64
+    Zᵢ::Float64
+    w::W
+    w_mod::T
+    vᵢ::V
+    v::G
+    w_parallel::W
+    w_perp1::W
+    w_perp2::W  
+end
+
+function update_w!(fp, ip)
+    fp.w.x[ip] = fp.vᵢ.x[ip] - fp.v.x[ip]
+    fp.w.y[ip] = fp.vᵢ.y[ip] - fp.v.y[ip]
+    fp.w.z[ip] = fp.vᵢ.z[ip] - fp.v.z[ip]
+    fp.w_mod[ip] = sqrt(fp.w.x[ip]^2 + fp.w.y[ip]^2 + fp.w.z[ip]^2)
+    orthonormal_basis_aligned_to_vector!(fp.w_parallel, fp.w_perp1, fp.w_perp2, fp.w, fp.w_mod, ip)
+end
+
+function orthonormal_basis_aligned_to_vector!(w_parallel, w_perp1, w_perp2, w, w_mod, ip)
+    w_parallel.x[ip] = w.x[ip] / w_mod[ip]
+    w_parallel.y[ip] = w.y[ip] / w_mod[ip]
+    w_parallel.z[ip] = w.z[ip] / w_mod[ip]
+
+
+    n = sqrt(w_parallel.y[ip]^2 + w_parallel.x[ip]^2)
+    if n > 0.0
+        w_perp1.x[ip] = w_parallel.y[ip]/n
+        w_perp1.y[ip] = - w_parallel.x[ip]/n
+        w_perp1.z[ip] = 0.0
+    else
+        w_perp1.x[ip] = 0.0
+        w_perp1.y[ip] = 1.0
+        w_perp1.z[ip] = 0.0
+    end
+
+    w_perp2.x[ip] = w_parallel.y[ip] * w_perp1.z[ip] - w_parallel.z[ip] * w_perp1.y[ip]
+    w_perp2.y[ip] = w_parallel.z[ip] * w_perp1.x[ip] - w_parallel.x[ip] * w_perp1.z[ip]
+    w_perp2.z[ip] = w_parallel.x[ip] * w_perp1.y[ip] - w_parallel.y[ip] * w_perp1.x[ip]
+
+    return nothing
+end
+
+
+
+
 function collision_FP!(p::ParticlePosition, v::ParticleVelocity, Z::Vector{Float64}, m::Vector{Float64}, main_ion::Element,
     nᵢ::MainIonDensity, Tᵢ::MainIonTemperature,  vᵢ::MainIonVelocity, Tₑ::ElectronTemperature, D_perp::AnomalousDiffusion, dt::Float64, i::Int64)
 
@@ -5,11 +54,8 @@ function collision_FP!(p::ParticlePosition, v::ParticleVelocity, Z::Vector{Float
     Zᵢ = main_ion.Z  # assumption of Hydrogenic plasma
 
     # plasma-impurity relative velocity
-    wx = vᵢ.x[i] - v.x[i]
-    wy = vᵢ.y[i] - v.y[i]
-    wz = vᵢ.z[i] - v.z[i]
-    w_mod = sqrt(wx^2 + wy^2 + wz^2)
-
+ 
+    
     # I could put lnΛ in helpers
     lnΛ = 6.6 - 0.5 * log(nᵢ.value[i] / 10 ^ 20) + 1.5 * log(Tₑ.value[i]) # Te in eV and ni in m^-3; eq. 1.8 page 9 in book "The Physics of plasmas" by T.J.M Boyd and J.J. Sanderson
     # lnΛ = log(4 * π * ni * r_d^3) # classic formulation
@@ -63,6 +109,9 @@ function μ(x::Union{Float64, Vector{Float64}})   # Eq. 2.34 ERO-TEXTOR version 
     v = 10 .^ LinRange(log10(1e-3), log10(x), 100)
     return 2 / sqrt(π) * trapz(v, exp.(-v) .* sqrt.(v) )
 end
+
+_μ(x::Union{Float64}) = 1 - 2 / sqrt(π) * SpecialFunctions.gamma(3/2,x)
+
 
 function μ_prime(x::Union{Float64, Vector{Float64}}) # Eq. 2.35 ERO-TEXTOR version 2.0 MANUAL
     return 2 / sqrt(π) .* exp.(-x) .* sqrt.(x)
@@ -123,4 +172,9 @@ function random_vector_in_plane(w_perp1::AbstractVector{<:Real}, w_perp2::Abstra
     theta = 2π * rand()
     # Create a random vector in the plane individuated by w_perp1 and w_perp2 using the linear combination.
     return cos(theta) * w_perp1 + sin(theta) * w_perp2
+end
+
+function random_vector_in_plane(Δp, e_r, e_dia, χ_perp, ip::Int64)
+    θ = 2π * χ_perp[ip]
+    return Δp * (cos(θ) * e_r.x + sin(θ) * e_dia.x[ip]), Δp * (cos(θ) * e_r.y + sin(θ) * e_dia.y[ip]), Δp * (cos(θ) * e_r.z + sin(θ) * e_dia.z[ip])
 end
