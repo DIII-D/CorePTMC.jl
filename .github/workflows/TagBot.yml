@@ -11,6 +11,7 @@ jobs:
   TagBot:
     permissions:
       issues: write
+      contents: write
     if: github.event_name == 'workflow_dispatch' || github.actor == 'JuliaTagBot'
     runs-on: ubuntu-latest
     steps:
