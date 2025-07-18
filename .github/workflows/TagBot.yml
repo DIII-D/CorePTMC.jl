@@ -19,5 +19,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           # Edit the following line to reflect the actual name of the GitHub Secret containing your private key
           ssh: ${{ secrets.SSH_KEY }}
-          registry: https://github.com/DIII-D/D3DRegistry.jl
+          registry: DIII-D/D3DRegistry.jl
+        env:
           registry_ssh: ${{ secrets.REGISTRY_SSH_KEY }}
