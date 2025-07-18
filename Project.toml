@@ -1,7 +1,7 @@
 name = "CorePTMC"
 uuid = "ecc8293c-0350-4895-af5b-f5dbdcb4af11"
 authors = ["Jerome Guterl"]
-version = "1.0.0-DEV"
+version = "1.1.0-DEV"
 
 [deps]
 ADAS = "f4a0d185-1024-41e7-8ef7-3196bb2f6549"
